@@ -30,6 +30,7 @@ def create_tables(cursor):
             price TEXT,
             image_url TEXT,
             label_id INTEGER NOT NULL,
+            record_store TEXT NOT NULL DEFAULT 'hardwax',
             FOREIGN KEY (label_id) REFERENCES LABELS(label_id)
         )
     ''')
@@ -198,6 +199,34 @@ def test_query_keyword_search(test_db):
     cursor.execute(query, ('%Test Release%',))
     results = cursor.fetchall()
     assert len(results) == 3
+
+def test_pydantic_release_model():
+    """Test ReleaseModel validation and ID generation"""
+    from models import ReleaseModel, TrackModel
+    
+    release = ReleaseModel(
+        artist="AgainstMe",
+        title="K4PSA",
+        tracks=[
+            TrackModel(name="Underneath the Table"),
+            TrackModel(name="K4PSA"),
+        ]
+    )
+    
+    assert release.artist == "AgainstMe"
+    assert release.title == "K4PSA"
+    assert len(release.tracks) == 2
+    assert len(release.id) == 64
+
+def test_pydantic_release_model_validation():
+    """Test ReleaseModel rejects empty tracks"""
+    from models import ReleaseModel
+    
+    try:
+        ReleaseModel(artist="Test", title="Test", tracks=[])
+        assert False, "Should have raised ValueError"
+    except ValueError:
+        pass
 
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])
