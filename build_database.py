@@ -3,7 +3,6 @@ import sqlite3
 conn = sqlite3.connect('hardwax.db')
 cursor = conn.cursor()
 
-# Create in correct order
 cursor.execute('''
     CREATE TABLE ARTISTS (
         artist_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -34,6 +33,7 @@ cursor.execute('''
         price TEXT,
         image_url TEXT,
         label_id INTEGER NOT NULL,
+        record_store TEXT NOT NULL DEFAULT 'hardwax',
         FOREIGN KEY (label_id) REFERENCES LABELS(label_id)
     )
 ''')
