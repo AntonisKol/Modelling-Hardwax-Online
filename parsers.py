@@ -15,7 +15,8 @@ class ReleaseParserBase(ABC):
     
     def _fetch_data(self) -> BeautifulSoup:
         """Fetch and parse HTML from URL"""
-        response = self.session.get(self.url, timeout=10)
+        headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'}
+        response = self.session.get(self.url, headers=headers, timeout=10)
         response.raise_for_status()
         return BeautifulSoup(response.text, "html.parser")
     
@@ -108,13 +109,16 @@ class HardwaxReleaseParser(ReleaseParserBase):
         return releases
 
 
-class SpaceHallParser(ReleaseParserBase):
-    """Scraper for spacehall-berlin.de"""
+class JunoRecordsParser(ReleaseParserBase):
+    """Scraper for juno.co.uk"""
     
     def __init__(self) -> None:
-        super().__init__(url="https://www.spacehall-berlin.de", record_store="spacehall")
+        super().__init__(url="https://www.juno.co.uk", record_store="juno")
     
     def parse(self) -> list[ReleaseModel]:
-        """Parse SpaceHall releases from HTML"""
-        # TODO: Implement SpaceHall-specific parsing
+        """Parse Juno Records releases from HTML"""
+        # Juno loads products dynamically with JavaScript
+        # BeautifulSoup cannot parse JavaScript-rendered content
+        # Would require Selenium or Playwright for browser automation
+        # TODO: Implement if browser automation is added to project
         return []
