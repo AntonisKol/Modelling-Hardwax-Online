@@ -10,6 +10,7 @@ print("=" * 80)
 query1 = '''
     SELECT DISTINCT
         r.release_id,
+        r.record_store,
         a.artist_name,
         r.title,
         r.description,
@@ -20,15 +21,15 @@ query1 = '''
     JOIN RELEASE_ARTISTS ra ON r.release_id = ra.release_id
     JOIN ARTISTS a ON ra.artist_id = a.artist_id
     JOIN LABELS l ON r.label_id = l.label_id
-    ORDER BY r.release_id DESC
+    ORDER BY r.record_store, r.release_id DESC
 '''
 
 cursor.execute(query1)
 results = cursor.fetchall()
 print(f"\nTotal releases: {len(results)}\n")
 for row in results[:5]:
-    print(f"{row[1]} - {row[2]}")
-    print(f"  Label: {row[4]} | Price: {row[6]}")
+    print(f"[{row[1]}] {row[2]} - {row[3]}")
+    print(f"  Label: {row[5]} | Price: {row[7]}")
 
 print("\n" + "=" * 80)
 print("QUERY 2: RELEASES BY LABEL")
@@ -43,6 +44,7 @@ if label_sample:
     query2 = '''
         SELECT 
             a.artist_name,
+            r.record_store,
             r.title,
             r.price,
             GROUP_CONCAT(f.format_name, ', ') as formats
@@ -54,14 +56,14 @@ if label_sample:
         LEFT JOIN FORMATS f ON rf.format_id = f.format_id
         WHERE r.label_id = ?
         GROUP BY r.release_id
-        ORDER BY r.release_id DESC
+        ORDER BY r.record_store, r.release_id DESC
     '''
     
     cursor.execute(query2, (label_id,))
     results = cursor.fetchall()
     print(f"\nReleases from label '{label_name}':\n")
     for row in results:
-        print(f"{row[0]} - {row[1]} ({row[3]}) | {row[2]}")
+        print(f"[{row[1]}] {row[0]} - {row[2]} ({row[4]}) | {row[3]}")
 
 print("\n" + "=" * 80)
 print("QUERY 3: RELEASES BY FORMAT")
@@ -88,6 +90,7 @@ print("\nExample - Get all 12\" releases:")
 query3b = '''
     SELECT 
         a.artist_name,
+        r.record_store,
         r.title,
         r.price
     FROM RELEASES r
@@ -96,14 +99,14 @@ query3b = '''
     JOIN RELEASE_FORMATS rf ON r.release_id = rf.release_id
     JOIN FORMATS f ON rf.format_id = f.format_id
     WHERE f.format_name = ?
-    ORDER BY r.release_id DESC
+    ORDER BY r.record_store, r.release_id DESC
 '''
 
 cursor.execute(query3b, ('12"',))
 results = cursor.fetchall()
 print(f"Found {len(results)} releases\n")
 for row in results[:5]:
-    print(f"{row[0]} - {row[1]} ({row[2]})")
+    print(f"[{row[1]}] {row[0]} - {row[2]} ({row[3]})")
 
 print("\n" + "=" * 80)
 print("QUERY 4: FULL RELEASE DETAILS WITH TRACKS")
@@ -112,6 +115,7 @@ print("=" * 80)
 query4_release = '''
     SELECT 
         r.release_id,
+        r.record_store,
         a.artist_name,
         r.title,
         r.description,
@@ -144,10 +148,10 @@ if release_sample:
     release = cursor.fetchone()
     
     if release:
-        print(f"\nRelease: {release[1]} - {release[2]}")
-        print(f"Description: {release[3]}")
-        print(f"Label: {release[4]} | Catalog: {release[5]}")
-        print(f"Formats: {release[7]} | Price: {release[6]}")
+        print(f"\nRelease ({release[1]}): {release[2]} - {release[3]}")
+        print(f"Description: {release[4]}")
+        print(f"Label: {release[5]} | Catalog: {release[6]}")
+        print(f"Formats: {release[8]} | Price: {release[7]}")
         print("\nTracks:")
         
         cursor.execute(query4_tracks, (release_id,))
@@ -162,6 +166,7 @@ print("=" * 80)
 query5 = '''
     SELECT 
         r.release_id,
+        r.record_store,
         r.title,
         l.label_name,
         GROUP_CONCAT(f.format_name, ', ') as formats,
@@ -173,7 +178,7 @@ query5 = '''
     LEFT JOIN FORMATS f ON rf.format_id = f.format_id
     WHERE ra.artist_id = ?
     GROUP BY r.release_id
-    ORDER BY r.release_id DESC
+    ORDER BY r.record_store, r.release_id DESC
 '''
 
 cursor.execute('SELECT artist_id, artist_name FROM ARTISTS LIMIT 1')
@@ -184,7 +189,7 @@ if artist:
     cursor.execute(query5, (artist[0],))
     releases = cursor.fetchall()
     for row in releases:
-        print(f"{row[1]} ({row[3]}) - {row[2]} | {row[4]}")
+        print(f"[{row[1]}] {row[2]} ({row[4]}) - {row[3]} | {row[5]}")
 
 print("\n" + "=" * 80)
 print("QUERY 6: SEARCH RELEASES BY DESCRIPTION")
@@ -193,6 +198,7 @@ print("=" * 80)
 query6 = '''
     SELECT 
         a.artist_name,
+        r.record_store,
         r.title,
         l.label_name,
         GROUP_CONCAT(f.format_name, ', ') as formats,
@@ -205,7 +211,7 @@ query6 = '''
     LEFT JOIN FORMATS f ON rf.format_id = f.format_id
     WHERE r.description LIKE ?
     GROUP BY r.release_id
-    ORDER BY r.release_id DESC
+    ORDER BY r.record_store, r.release_id DESC
 '''
 
 search_term = '%Dub%'
@@ -214,7 +220,7 @@ results = cursor.fetchall()
 print(f"\nSearching for releases with 'Dub' in description:")
 print(f"Found {len(results)} releases\n")
 for row in results[:5]:
-    print(f"{row[0]} - {row[1]} | {row[2]} | Formats: {row[3]}")
+    print(f"[{row[1]}] {row[0]} - {row[2]} | {row[3]} | Formats: {row[4]}")
 
 close_connection(conn)
 
